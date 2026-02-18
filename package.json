@@ -1,0 +1,33 @@
+{
+  "name": "financial-analysis-agent",
+  "version": "1.0.0",
+  "description": "재무 분석 AI 에이전트 - 포트폴리오 진단, 공모주 분석, 이슈 리포트",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node src/index.js --dev",
+    "test": "node test/test-run.js",
+    "weekly": "node src/index.js --run weekly",
+    "daily": "node src/index.js --run daily",
+    "ipo": "node src/index.js --run ipo"
+  },
+  "keywords": [
+    "finance",
+    "stock",
+    "ipo",
+    "analysis"
+  ],
+  "author": "대박이 개발부장",
+  "license": "MIT",
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "axios": "^1.7.0",
+    "cheerio": "^1.0.0",
+    "dotenv": "^16.4.0",
+    "googleapis": "^144.0.0",
+    "iconv-lite": "^0.7.2",
+    "node-cron": "^3.0.3",
+    "nodemailer": "^6.9.0",
+    "puppeteer": "^23.0.0"
+  }
+}

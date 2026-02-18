@@ -1,0 +1,8 @@
+[deploy]
+startCommand = "node src/index.js"
+
+[build]
+builder = "nixpacks"
+
+[[services]]
+name = "financial-agent"
