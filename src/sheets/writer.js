@@ -16,13 +16,26 @@ class SheetsWriter {
         if (this.initialized) return;
 
         try {
-            const auth = new google.auth.GoogleAuth({
-                keyFile: config.google.serviceAccountPath,
-                scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-            });
-            this.sheets = google.sheets({ version: 'v4', auth });
-            this.initialized = true;
-            console.log('✅ Google Sheets 쓰기 API 연결 성공');
+            const fs = require('fs');
+            // 서비스 계정 JSON (환경변수 또는 파일) 확인
+            if (config.google.serviceAccountJson) {
+                const auth = new google.auth.GoogleAuth({
+                    credentials: config.google.serviceAccountJson,
+                    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+                });
+                this.sheets = google.sheets({ version: 'v4', auth });
+            } else if (fs.existsSync(config.google.serviceAccountPath)) {
+                const auth = new google.auth.GoogleAuth({
+                    keyFile: config.google.serviceAccountPath,
+                    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+                });
+            } else {
+                throw new Error('Google Sheets 쓰기 권한을 위한 인증 정보(Service Account)가 없습니다.');
+            }
+            if (this.sheets) {
+                this.initialized = true;
+                console.log('✅ Google Sheets 쓰기 API 연결 성공');
+            }
         } catch (error) {
             console.error('❌ Google Sheets 쓰기 API 연결 실패:', error.message);
             throw error;

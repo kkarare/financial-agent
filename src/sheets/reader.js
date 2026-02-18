@@ -16,9 +16,15 @@ class SheetsReader {
         if (this.initialized) return;
 
         try {
-            // 서비스 계정 JSON이 있으면 사용, 없으면 API Key 방식
             const fs = require('fs');
-            if (fs.existsSync(config.google.serviceAccountPath)) {
+            // 서비스 계정 JSON (환경변수 또는 파일) 확인
+            if (config.google.serviceAccountJson) {
+                const auth = new google.auth.GoogleAuth({
+                    credentials: config.google.serviceAccountJson,
+                    scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+                });
+                this.sheets = google.sheets({ version: 'v4', auth });
+            } else if (fs.existsSync(config.google.serviceAccountPath)) {
                 const auth = new google.auth.GoogleAuth({
                     keyFile: config.google.serviceAccountPath,
                     scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],

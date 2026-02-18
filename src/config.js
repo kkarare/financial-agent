@@ -21,6 +21,7 @@ const config = {
   // Google Cloud 서비스 계정
   google: {
     serviceAccountPath: process.env.GOOGLE_SERVICE_ACCOUNT_PATH || './credentials/service-account.json',
+    serviceAccountJson: process.env.GOOGLE_SERVICE_ACCOUNT_JSON ? JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON) : null,
     calendarId: process.env.GOOGLE_CALENDAR_ID,
   },
 

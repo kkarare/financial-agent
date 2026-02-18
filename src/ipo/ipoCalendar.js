@@ -17,6 +17,20 @@ class IpoCalendar {
 
         try {
             const fs = require('fs');
+
+            // 서비스 계정 JSON (환경변수) 우선 확인
+            if (config.google.serviceAccountJson) {
+                const auth = new google.auth.GoogleAuth({
+                    credentials: config.google.serviceAccountJson,
+                    scopes: ['https://www.googleapis.com/auth/calendar'],
+                });
+                this.calendar = google.calendar({ version: 'v3', auth });
+                this.initialized = true;
+                console.log('✅ Google Calendar API 연결 성공');
+                return;
+            }
+
+            // 파일 확인
             if (!fs.existsSync(config.google.serviceAccountPath)) {
                 console.warn('⚠️ 서비스 계정 JSON이 없어 캘린더 등록을 건너뜁니다.');
                 return;
