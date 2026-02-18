@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "재무 분석 AI 에이전트 - 포트폴리오 진단, 공모주 분석, 이슈 리포트",
   "main": "src/index.js",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "start": "node src/index.js",
     "dev": "node src/index.js --dev",
