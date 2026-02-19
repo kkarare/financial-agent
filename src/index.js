@@ -145,6 +145,11 @@ async function runIpoMonitor() {
 function setupScheduler() {
     console.log('\n🎼 스케줄러 설정 중...');
 
+    // Timezone Check
+    const now = new Date();
+    console.log(`🕒 현재 서버 시간: ${now.toString()}`);
+    console.log(`🕒 KST 변환 시간: ${now.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}`);
+
     // 매주 월요일 오전 7시 - 주간 종합 리포트
     cron.schedule('0 7 * * 1', () => {
         console.log('⏰ [스케줄] 주간 종합 리포트 트리거');
@@ -180,6 +185,26 @@ async function main() {
 
     // 환경변수 유효성 검사
     config.validate();
+
+    // 시작 알림 발송 (서버 재시작 확인용)
+    const startTimeKey = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
+    console.log(`🚀 서버 시작 시간 체크: ${startTimeKey}`);
+
+    // 개발 모드가 아닐 때만 발송 (중복 방지)
+    if (!process.argv.includes('--dev') && !process.argv.includes('--run')) {
+        emailSender.send({
+            subject: `🚀 [시스템 알림] 대박이 서버 시작! (${startTimeKey})`,
+            html: `
+                <h2>🚀 서버가 성공적으로 재시작되었습니다!</h2>
+                <p><strong>시작 시간 (KST):</strong> ${startTimeKey}</p>
+                <p><strong>설정된 Timezone:</strong> ${process.env.TZ || '시스템 기본'}</p>
+                <hr>
+                <p>이제 지정된 시간에 리포트가 발송될 예정입니다.</p>
+                <p>충성! 🫡</p>
+            `,
+            text: `대박이 서버가 ${startTimeKey}에 재시작되었습니다. 충성!`
+        }).catch(e => console.error('❌ 시작 알림 실패:', e));
+    }
 
     // CLI 인자 확인
     const args = process.argv.slice(2);

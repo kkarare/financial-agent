@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["nodejs", "chromium", "fontconfig"]
+nixPkgs = ["nodejs", "chromium", "fontconfig", "tzdata"]
 
 [phases.build]
 cmds = ["npm ci"]
@@ -10,3 +10,4 @@ cmd = "node src/index.js"
 [variables]
 PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "true"
 PUPPETEER_EXECUTABLE_PATH = "/usr/bin/chromium"
+TZ = "Asia/Seoul"
