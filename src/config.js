@@ -8,12 +8,16 @@ const config = {
   // Gemini AI
   geminiApiKey: process.env.GEMINI_API_KEY,
 
-  // Gmail SMTP
+  // Gmail (수신자 설정용)
   gmail: {
     user: process.env.GMAIL_USER || 'kkarere@gmail.com',
     appPassword: process.env.GMAIL_APP_PASSWORD,
     recipient: process.env.RECIPIENT_EMAIL || 'kkarere@gmail.com',
   },
+
+  // Resend HTTP API (Railway에서 SMTP 차단되어 사용)
+  resendApiKey: process.env.RESEND_API_KEY,
+  resendFrom: process.env.RESEND_FROM || 'DaeBaki <onboarding@resend.dev>',
 
   // Google Spreadsheet
   spreadsheetId: process.env.SPREADSHEET_ID || '1c5Q1fTJbc5WcaLCA1aqm1QNbb6CZlaWxXpfJqXQDvqU',
@@ -52,7 +56,7 @@ const config = {
 config.validate = function () {
   const missing = [];
   if (!this.geminiApiKey) missing.push('GEMINI_API_KEY');
-  if (!this.gmail.appPassword) missing.push('GMAIL_APP_PASSWORD');
+  if (!this.resendApiKey) missing.push('RESEND_API_KEY');
   if (missing.length > 0) {
     console.warn(`⚠️ [설정 경고] 다음 환경변수가 누락되었습니다: ${missing.join(', ')}`);
     console.warn('   .env 파일을 확인해 주세요.');

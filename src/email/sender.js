@@ -1,26 +1,19 @@
 // ============================================
-// Gmail SMTP 이메일 발송 모듈
-// 대표님께 매일 아침 리포트를 배달합니다 📧
+// Resend HTTP API 이메일 발송 모듈
+// Railway에서 SMTP가 차단되어 HTTP API로 전환! 📧
 // ============================================
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const config = require('../config');
 
 class EmailSender {
     constructor() {
-        this.transporter = null;
+        this.resend = null;
     }
 
-    // SMTP 트랜스포터 초기화
+    // Resend 클라이언트 초기화
     init() {
-        if (this.transporter) return;
-
-        this.transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: config.gmail.user,
-                pass: config.gmail.appPassword,
-            },
-        });
+        if (this.resend) return;
+        this.resend = new Resend(config.resendApiKey);
     }
 
     // 이메일 발송
@@ -28,16 +21,20 @@ class EmailSender {
         this.init();
 
         try {
-            const mailOptions = {
-                from: `"🐟 대박이 재무부장" <${config.gmail.user}>`,
-                to: config.gmail.recipient,
+            const result = await this.resend.emails.send({
+                from: config.resendFrom || 'DaeBaki <onboarding@resend.dev>',
+                to: [config.gmail.recipient],
                 subject,
                 html: html || undefined,
                 text: text || undefined,
-            };
+            });
 
-            const info = await this.transporter.sendMail(mailOptions);
-            console.log(`📧 이메일 발송 완료: ${subject} (${info.messageId})`);
+            if (result.error) {
+                console.error('❌ 이메일 발송 실패:', result.error.message);
+                return false;
+            }
+
+            console.log(`📧 이메일 발송 완료: ${subject} (${result.data?.id})`);
             return true;
         } catch (error) {
             console.error('❌ 이메일 발송 실패:', error.message);
