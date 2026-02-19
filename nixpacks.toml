@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["nodejs", "chromium", "fontconfig", "tzdata"]
+nixPkgs = ["nodejs", "chromium", "fontconfig"]
 
 [phases.build]
 cmds = ["npm ci"]
