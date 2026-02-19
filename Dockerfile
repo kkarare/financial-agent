@@ -18,7 +18,8 @@ RUN npm ci --only=production
 # 소스코드 복사
 COPY src/ ./src/
 
-# 서비스 계정 JSON (있는 경우)
-COPY credentials/ ./credentials/ 2>/dev/null || true
+# 한국 시간대 설정
+ENV TZ=Asia/Seoul
 
 CMD ["node", "src/index.js"]
+
