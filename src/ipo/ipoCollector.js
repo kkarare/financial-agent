@@ -244,6 +244,82 @@ class IpoCollector {
 
         return { current: currentList, newIpos };
     }
+
+    // ============================================
+    // 청약일 파싱 유틸리티
+    // '02.20~02.21' 또는 '26.02.20~02.21' 등 다양한 형태 처리
+    // ============================================
+    parseDateRange(dateStr) {
+        if (!dateStr) return null;
+
+        try {
+            // '02.20~02.21' → 시작일 '02.20' 추출
+            const startPart = dateStr.split('~')[0].trim();
+
+            // 년도 포함 여부 확인 (예: '2026.02.20')
+            const parts = startPart.split('.');
+            let month, day, year;
+
+            if (parts.length === 3) {
+                // YYYY.MM.DD 형태
+                year = parseInt(parts[0]);
+                month = parseInt(parts[1]);
+                day = parseInt(parts[2]);
+            } else if (parts.length === 2) {
+                // MM.DD 형태 (연도 없음 → 현재 연도 기준)
+                const now = new Date();
+                year = now.getFullYear();
+                month = parseInt(parts[0]);
+                day = parseInt(parts[1]);
+
+                // 월이 현재 월보다 작으면 내년으로 보정
+                // (예: 현재 12월인데 01.05이면 내년 1월)
+                if (month < now.getMonth() + 1) {
+                    year += 1;
+                }
+            } else {
+                return null;
+            }
+
+            if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
+
+            // YYYY-MM-DD 형태로 반환 (시간 없는 Date)
+            return new Date(year, month - 1, day);
+        } catch {
+            return null;
+        }
+    }
+
+    // ============================================
+    // 내일 청약 시작 종목만 필터링
+    // 스케줄러에서 매일 18:00 호출 시 사용
+    // ============================================
+    filterTomorrowSubscription(ipoList) {
+        // KST 기준 '내일' 날짜 계산
+        const nowKST = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+        const tomorrow = new Date(nowKST);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        const tYear = tomorrow.getFullYear();
+        const tMonth = tomorrow.getMonth() + 1;
+        const tDay = tomorrow.getDate();
+
+        console.log(`🔍 필터 기준: 내일 KST ${tYear}-${String(tMonth).padStart(2, '0')}-${String(tDay).padStart(2, '0')} 청약 시작 종목`);
+
+        const filtered = ipoList.filter(ipo => {
+            const startDate = this.parseDateRange(ipo.subscriptionDate);
+            if (!startDate) return false;
+
+            return (
+                startDate.getFullYear() === tYear &&
+                startDate.getMonth() + 1 === tMonth &&
+                startDate.getDate() === tDay
+            );
+        });
+
+        console.log(`📌 내일 청약 시작 종목: ${filtered.length}개`);
+        return filtered;
+    }
 }
 
 module.exports = new IpoCollector();

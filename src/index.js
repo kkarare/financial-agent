@@ -98,7 +98,7 @@ async function runDailyIssue() {
     }
 }
 
-// 🆕 공모주 모니터링 (매일 09:00)
+// 🆕 공모주 모니터링 (매일 18:00 실행, 내일 청약 시작 종목만 알림)
 async function runIpoMonitor() {
     console.log('\n' + '═'.repeat(50));
     console.log('🆕 공모주 모니터링 실행 시작');
@@ -109,24 +109,30 @@ async function runIpoMonitor() {
         const ipoList = await ipoCollector.getIpoSchedule();
         console.log(`📋 ${ipoList.length}개 공모주 일정 수집`);
 
-        if (ipoList.length === 0) {
-            console.log('ℹ️ 현재 진행 중인 공모주 없음');
+        // 2. 내일 청약 시작 종목만 필터링 (핵심 로직 포인트!)
+        const tomorrowIpos = ipoCollector.filterTomorrowSubscription(ipoList);
+
+        if (tomorrowIpos.length === 0) {
+            console.log('ℹ️ 내일 청약 시작 공모주 없음 → 이메일 미발송');
             return;
         }
 
-        // 2. 공모주 분석
-        const analyses = await ipoAnalyzer.analyzeAll(ipoList, ipoCollector);
+        console.log(`📧 내일 청약 시작! ${tomorrowIpos.length}개 종목 분석 시작...`);
+        tomorrowIpos.forEach(i => console.log(`   - ${i.name} | 청약일: ${i.subscriptionDate}`));
 
-        // 3. Google Calendar에 등록
+        // 3. 내일 청약 종목만 분석
+        const analyses = await ipoAnalyzer.analyzeAll(tomorrowIpos, ipoCollector);
+
+        // 4. Google Calendar에 등록
         for (const analysis of analyses) {
             await ipoCalendar.registerIpoEvents(analysis);
         }
 
-        // 4. 공모주 리포트 이메일 발송
+        // 5. 공모주 리포트 이메일 발송
         const ipoHtml = reportGenerator.generateIpoHtml(analyses);
         await emailSender.sendIpoAlert(ipoHtml);
 
-        // 5. 투자기록 시트 생성 (최초 1회)
+        // 6. 투자기록 시트 생성 (최초 1회)
         try {
             await sheetsWriter.createIpoSheet();
         } catch (e) {
@@ -164,12 +170,12 @@ function setupScheduler() {
     }, { timezone: 'Asia/Seoul' });
     console.log('  ✅ 일간 이슈: 매일 07:00 (KST)');
 
-    // 매일 오전 9시 - 공모주 모니터링
-    cron.schedule('0 9 * * *', () => {
-        console.log('⏰ [스케줄] 공모주 모니터링 트리거');
+    // 매일 오후 6시 - 공모주 청약 전날 알림
+    cron.schedule('0 18 * * *', () => {
+        console.log('⏰ [스케줄] 공모주 청약 전날 알림 트리거');
         runIpoMonitor();
     }, { timezone: 'Asia/Seoul' });
-    console.log('  ✅ 공모주 모니터링: 매일 09:00 (KST)');
+    console.log('  ✅ 공모주 알림: 매일 18:00 (KST) - 청약 전날만 발송');
 
     console.log('\n🎼 모든 스케줄 등록 완료! 대기 중...\n');
 }
